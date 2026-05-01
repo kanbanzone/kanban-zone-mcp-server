@@ -1,0 +1,41 @@
+{
+    "name": "kanban-zone-mcp-server",
+    "version": "0.1.0",
+    "description": "Model Context Protocol server for the Kanban Zone public API",
+    "license": "MIT",
+    "homepage": "https://developer.kanbanzone.com/mcp",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kanbanzone/kanban-zone-mcp-server.git"
+    },
+    "bugs": {
+        "url": "https://github.com/kanbanzone/kanban-zone-mcp-server/issues"
+    },
+    "keywords": [
+        "mcp",
+        "model-context-protocol",
+        "kanban",
+        "kanbanzone",
+        "ai"
+    ],
+    "main": "src/index.js",
+    "bin": {
+        "kanban-zone-mcp": "src/index.js"
+    },
+    "files": [
+        "src",
+        "README.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "start": "node src/index.js"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.6.1",
+        "axios": "^1.7.9",
+        "zod": "^3.23.8"
+    }
+}
