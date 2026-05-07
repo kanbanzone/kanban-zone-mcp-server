@@ -70,8 +70,8 @@ The server validates the key on startup. A missing or malformed value (no `:` se
 | **Checklists** | `create_checklist`, `update_checklist`, `list_card_checklists` |
 | **Tasks** | `create_task`, `update_task`, `move_task` |
 
-User-facing docs with example prompts: <https://developer.kanbanzone.com/mcp>.
-Full input/output schemas: <https://developer.kanbanzone.com/api>.
+User-facing docs with example prompts: <https://docs.kanbanzone.io/mcp>.
+Full input/output schemas: <https://docs.kanbanzone.io/api>.
 
 ## Running from source
 
