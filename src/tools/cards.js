@@ -365,6 +365,83 @@ const registerCardsTools = server => {
                 return { content: [{ type: 'text', text }], structuredContent: data };
             })
     );
+
+    server.registerTool(
+        'kanbanzone_search_cards',
+        {
+            title: 'Search cards by title or number',
+            description: [
+                'Full-text search across cards in your organization. Matches card titles and card numbers.',
+                'Task, comment, and attachment text are not searched in this version.',
+                'Results are sorted by relevance (best match first).',
+                '',
+                'Mirror cards: results are returned per (card, board) pair — a card mirrored to two',
+                'boards that matches the query appears twice, each with that board\'s bucket, label,',
+                'owner, and watchers. Use the returned `board` field to know which board to act on.',
+                '',
+                'Args:',
+                '  - q (string, required): search text, minimum 2 characters.',
+                '  - board (string, optional): board publicId to narrow the search to one board. Omit to search across every board in the org.',
+                '  - include_archived (boolean, optional): include archived cards.',
+                '  - page (number, optional, default 1).',
+                '  - count (number, optional, default 20, max 100).',
+                '  - response_format ("markdown" | "json").',
+                '',
+                'Examples:',
+                '  - "Search for cards mentioning billing"',
+                '  - "Find cards about webhook on the OeMrbG8g board"',
+            ].join('\n'),
+            inputSchema: {
+                q: z.string().min(2).describe('Search text (min 2 characters).'),
+                board: boardPublicIdField.optional(),
+                include_archived: z.boolean().optional(),
+                page: pageField,
+                count: countField,
+                response_format: responseFormatField,
+            },
+            annotations: READ,
+        },
+        async ({ q, board, include_archived, page, count, response_format }) =>
+            safeRun(async () => {
+                const data = await makeApiRequest('/cards/search', {
+                    query: {
+                        q,
+                        board,
+                        includeArchived: include_archived ? 'true' : undefined,
+                        page,
+                        count,
+                    },
+                });
+
+                const items = data.items || [];
+                const total = typeof data.total === 'number' ? data.total : items.length;
+                const hasMore = data.has_more === true;
+
+                if (response_format === ResponseFormat.JSON) {
+                    return {
+                        content: [{ type: 'text', text: toJsonString(data) }],
+                        structuredContent: data,
+                    };
+                }
+
+                const rerender = list =>
+                    [
+                        `# Search results for "${q}" (page ${page}, ${list.length} of ${total})`,
+                        '',
+                        ...list.map(renderCardLine),
+                        hasMore ? `\n_More results available — call again with \`page: ${page + 1}\`._` : '',
+                    ]
+                        .filter(Boolean)
+                        .join('\n');
+
+                const { text } = truncateIfNeeded({ items, rendered: rerender(items), rerender });
+
+                return {
+                    content: [{ type: 'text', text }],
+                    structuredContent: data,
+                };
+            })
+    );
 };
 
 module.exports = { registerCardsTools };
