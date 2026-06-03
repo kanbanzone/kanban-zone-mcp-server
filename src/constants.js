@@ -8,7 +8,7 @@ const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
 
 const SERVER_NAME = 'kanban-zone-mcp-server';
-const SERVER_VERSION = '0.1.0';
+const SERVER_VERSION = '0.1.1';
 
 const REQUEST_TIMEOUT_MS = 30000;
 

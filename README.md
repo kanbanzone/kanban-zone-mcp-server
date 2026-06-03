@@ -2,13 +2,14 @@
 
 [Model Context Protocol](https://modelcontextprotocol.io/) server that lets AI assistants (Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, and any stdio-capable MCP client) drive your [Kanban Zone](https://kanbanzone.com) workspace via the public API.
 
-23 tools across boards, cards, comments, checklists, and tasks. No delete operations.
+27 tools across boards, cards, comments, checklists, tasks, and labels. No delete operations.
 
 ## What you can do
 
 - Read your boards, columns, labels, members, and custom fields.
-- Create, list, get, update, and move cards.
+- Create, list, get, update, move, and search cards.
 - Inspect a card's history and time-in-column metrics.
+- Create, get, and update labels.
 - Add comments.
 - Create, update, and list checklists — including bulk task creation in a single call.
 - Create, update, and move tasks.
@@ -59,16 +60,17 @@ The server validates the key on startup. A missing or malformed value (no `:` se
 
 ## Tools
 
-23 tools, all prefixed with `kanbanzone_`:
+27 tools, all prefixed with `kanbanzone_`:
 
 | Group | Tools |
 | --- | --- |
 | **Organization & Auth** | `get_me`, `get_organization` |
 | **Boards** | `list_boards`, `get_board`, `list_board_columns`, `list_board_labels`, `list_board_members`, `list_board_custom_fields` |
-| **Cards** | `create_card`, `list_cards`, `get_card`, `update_card`, `move_card`, `get_card_history`, `get_card_metrics` |
+| **Cards** | `create_card`, `list_cards`, `get_card`, `update_card`, `move_card`, `get_card_history`, `get_card_metrics`, `search_cards` |
 | **Comments** | `create_comment`, `list_card_comments` |
 | **Checklists** | `create_checklist`, `update_checklist`, `list_card_checklists` |
 | **Tasks** | `create_task`, `update_task`, `move_task` |
+| **Labels** | `create_label`, `get_label`, `update_label` |
 
 User-facing docs with example prompts: <https://docs.kanbanzone.io/mcp>.
 Full input/output schemas: <https://docs.kanbanzone.io/api>.
