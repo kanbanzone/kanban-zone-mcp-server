@@ -7,10 +7,29 @@ const READ = { readOnlyHint: true, destructiveHint: false, idempotentHint: true,
 const WRITE = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true };
 const IDEMPOTENT_WRITE = { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true };
 
+// list_cards nests card fields under CardItem; search_cards returns them flat. Handle both.
 const renderCardLine = card => {
-    const number = card.number !== undefined ? `#${card.number} ` : '';
-    const owner = card.owner && card.owner.email ? ` — owner ${card.owner.email}` : '';
-    return `- ${number}**${card.title}** (\`${card._id}\`)${owner}`;
+    const c = (card && card.CardItem) || card || {};
+    const id = (card && card._id) || c._id;
+    const number = c.number !== undefined ? `#${c.number} ` : '';
+    const ownerEmail = c.owner && typeof c.owner === 'object' ? c.owner.email : c.owner;
+    const owner = ownerEmail ? ` — owner ${ownerEmail}` : '';
+    return `- ${number}**${c.title}** (\`${id}\`)${owner}`;
+};
+
+// The /cards list envelope is { count, totalAvailable, cards, hasMore }; tolerate a bare
+// array or search-style { total, has_more } names too, so pagination metadata stays accurate.
+const summarizeListResponse = (data, page, count) => {
+    const items = Array.isArray(data) ? data : (data && (data.cards || data.results || data.items)) || [];
+    const envelope = data && !Array.isArray(data) ? data : {};
+    const total = [envelope.totalAvailable, envelope.total].find(v => typeof v === 'number') ?? items.length;
+    const hasMore =
+        typeof envelope.hasMore === 'boolean'
+            ? envelope.hasMore
+            : typeof envelope.has_more === 'boolean'
+            ? envelope.has_more
+            : total > page * count;
+    return { items, total, hasMore };
 };
 
 const registerCardsTools = server => {
@@ -136,10 +155,7 @@ const registerCardsTools = server => {
                     },
                 });
 
-                // Upstream returns either a bare array or a paginated wrapper depending on filters.
-                const items = Array.isArray(data) ? data : data.cards || data.results || [];
-                const total = typeof data.total === 'number' ? data.total : items.length;
-                const hasMore = total > page * count;
+                const { items, total, hasMore } = summarizeListResponse(data, page, count);
 
                 if (response_format === ResponseFormat.JSON) {
                     return {
@@ -444,4 +460,4 @@ const registerCardsTools = server => {
     );
 };
 
-module.exports = { registerCardsTools };
+module.exports = { registerCardsTools, renderCardLine, summarizeListResponse };
