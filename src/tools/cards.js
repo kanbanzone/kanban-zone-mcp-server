@@ -378,7 +378,8 @@ const registerCardsTools = server => {
                     response_format === ResponseFormat.JSON
                         ? toJsonString(data)
                         : `# Metrics for card ${id}\n${toJsonString(data)}`;
-                return { content: [{ type: 'text', text }], structuredContent: data };
+                // The metrics endpoint returns an array; MCP structuredContent must be an object.
+                return { content: [{ type: 'text', text }], structuredContent: { metrics: data } };
             })
     );
 

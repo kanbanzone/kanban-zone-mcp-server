@@ -117,9 +117,10 @@ const registerTasksTools = server => {
                     method: 'POST',
                     body: { checklistFrom, checklistTo, position },
                 });
+                // The move endpoint returns a plain string; MCP structuredContent must be an object.
                 return {
                     content: [{ type: 'text', text: `Moved task ${id}.` }],
-                    structuredContent: data || { ok: true },
+                    structuredContent: { ok: true },
                 };
             })
     );
