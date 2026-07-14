@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { AsyncLocalStorage } = require('node:async_hooks');
 const { DEFAULT_BASE_URL, REQUEST_TIMEOUT_MS } = require('./constants');
 
 // Throws on missing/malformed key so index.js can exit before opening the stdio transport.
@@ -17,7 +18,11 @@ const parseApiKey = raw => {
     return { accessId: raw.slice(0, idx), secret: raw.slice(idx + 1) };
 };
 
+// stdio: the credential is read once from env at boot into this singleton.
 let clientConfig = null;
+// A host that serves multiple credentials from one process can bind per-call credentials in this
+// store instead of the boot singleton; see runWithCredentials.
+const credentialStore = new AsyncLocalStorage();
 
 const initApiClient = () => {
     const { accessId, secret } = parseApiKey(process.env.KANBANZONE_API_KEY);
@@ -28,7 +33,17 @@ const initApiClient = () => {
     };
 };
 
+// Run fn with call-scoped credentials ({ accessId, secret, baseUrl }) that override the boot
+// singleton for the duration of fn's async execution — lets one process serve multiple tenants.
+const runWithCredentials = (credentials, fn) => credentialStore.run(credentials, fn);
+
+// A per-call store (if a host set one) wins; otherwise the boot singleton (stdio). Additive —
+// the stdio path is unchanged when no store is present.
 const requireConfig = () => {
+    const scoped = credentialStore.getStore();
+    if (scoped) {
+        return scoped;
+    }
     if (!clientConfig) {
         throw new Error('API client not initialized — call initApiClient() before any tool handler.');
     }
@@ -117,4 +132,5 @@ module.exports = {
     makeApiRequest,
     handleApiError,
     safeRun,
+    runWithCredentials,
 };
