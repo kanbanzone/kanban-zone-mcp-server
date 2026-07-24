@@ -62,18 +62,27 @@ const makeApiRequest = async (endpoint, { method = 'GET', body, query } = {}) =>
         ? Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined && value !== null))
         : undefined;
 
-    const response = await axios.request({
+    const requestConfig = {
         method,
         url: buildUrl(config.baseUrl, endpoint),
         data: body,
         params: cleanedQuery,
         timeout: REQUEST_TIMEOUT_MS,
-        auth: { username: config.accessId, password: config.secret },
         headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
         },
-    });
+    };
+    // A multi-tenant host may bind an OAuth bearer token instead of an accessId/secret pair
+    // (runWithCredentials) — forward it as a Bearer header. Otherwise authenticate with HTTP Basic,
+    // exactly as the stdio path always has.
+    if (config.bearerToken) {
+        requestConfig.headers.Authorization = `Bearer ${config.bearerToken}`;
+    } else {
+        requestConfig.auth = { username: config.accessId, password: config.secret };
+    }
+
+    const response = await axios.request(requestConfig);
     return response.data;
 };
 
