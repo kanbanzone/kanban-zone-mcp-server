@@ -1,7 +1,7 @@
 const { z } = require('zod');
 const { makeApiRequest, safeRun } = require('../client');
 const { responseFormatField, ResponseFormat, toJsonString, truncateIfNeeded } = require('../format');
-const { boardPublicIdField } = require('../schemas');
+const { boardPublicIdField, pageField, countField } = require('../schemas');
 
 const READ_ANNOTATIONS = {
     readOnlyHint: true,
@@ -26,6 +26,8 @@ const registerBoardsTools = server => {
                 '  - include_labels (boolean): include labels for each board.',
                 '  - include_members (boolean): include member lists for each board.',
                 '  - include_custom_fields (boolean): include custom fields per board.',
+                '  - page (number, optional, default 1).',
+                '  - count (number, optional, default 20, max 100).',
                 '  - response_format ("markdown" | "json"): output format. Defaults to markdown.',
                 '',
                 'Examples:',
@@ -38,6 +40,8 @@ const registerBoardsTools = server => {
                 include_labels: z.boolean().optional(),
                 include_members: z.boolean().optional(),
                 include_custom_fields: z.boolean().optional(),
+                page: pageField,
+                count: countField,
                 response_format: responseFormatField,
             },
             annotations: READ_ANNOTATIONS,
@@ -48,6 +52,8 @@ const registerBoardsTools = server => {
             include_labels,
             include_members,
             include_custom_fields,
+            page,
+            count,
             response_format,
         }) =>
             safeRun(async () => {
@@ -61,17 +67,23 @@ const registerBoardsTools = server => {
                     },
                 });
 
-                const boards = Array.isArray(data) ? data : data.boards || [];
+                const all = Array.isArray(data) ? data : data.boards || [];
+                // /boards has no server-side pagination, so window the list here — an org with
+                // hundreds of boards would otherwise fill the caller's context in one response.
+                const total = all.length;
+                const boards = all.slice((page - 1) * count, page * count);
+                const hasMore = total > page * count;
 
                 if (response_format === ResponseFormat.JSON) {
+                    const payload = { total, count: boards.length, page, boards, has_more: hasMore };
                     return {
-                        content: [{ type: 'text', text: toJsonString(boards) }],
-                        structuredContent: { boards },
+                        content: [{ type: 'text', text: toJsonString(payload) }],
+                        structuredContent: payload,
                     };
                 }
 
-                const rerender = items =>
-                    [`# Boards (${items.length})`, '', ...items.map(renderBoardLine)].join('\n');
+                const heading = `# Boards (${boards.length} of ${total}, page ${page})`;
+                const rerender = items => [heading, '', ...items.map(renderBoardLine)].join('\n');
                 const { text } = truncateIfNeeded({
                     items: boards,
                     rendered: rerender(boards),
@@ -80,7 +92,7 @@ const registerBoardsTools = server => {
 
                 return {
                     content: [{ type: 'text', text }],
-                    structuredContent: { boards },
+                    structuredContent: { total, count: boards.length, page, boards, has_more: hasMore },
                 };
             })
     );

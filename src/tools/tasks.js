@@ -2,6 +2,7 @@ const { z } = require('zod');
 const { makeApiRequest, safeRun } = require('../client');
 const { isoDateField, objectIdField } = require('../schemas');
 const { RICH_TEXT_HELP } = require('../format');
+const { toQuillHtml } = require('../rich-text');
 
 const WRITE = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true };
 const IDEMPOTENT_WRITE = { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true };
@@ -35,7 +36,7 @@ const registerTasksTools = server => {
         },
         async ({ checklist, description, position, dueAt, owner }) =>
             safeRun(async () => {
-                const body = { checklist, description };
+                const body = { checklist, description: toQuillHtml(description) };
                 if (position !== undefined) body.position = position;
                 if (dueAt !== undefined) body.dueAt = dueAt;
                 if (owner !== undefined) body.owner = owner;
@@ -80,6 +81,7 @@ const registerTasksTools = server => {
         },
         async ({ id, ...updates }) =>
             safeRun(async () => {
+                if (updates.description !== undefined) updates.description = toQuillHtml(updates.description);
                 const data = await makeApiRequest(`/tasks/${id}`, { method: 'PATCH', body: updates });
                 return {
                     content: [{ type: 'text', text: `Updated task ${id}.` }],

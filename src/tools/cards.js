@@ -1,6 +1,7 @@
 const { z } = require('zod');
 const { makeApiRequest, safeRun } = require('../client');
 const { responseFormatField, ResponseFormat, toJsonString, truncateIfNeeded, RICH_TEXT_HELP } = require('../format');
+const { toQuillHtml } = require('../rich-text');
 const { objectIdField, boardPublicIdField, pageField, countField, isoDateField } = require('../schemas');
 
 const READ = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
@@ -68,7 +69,7 @@ const registerCardsTools = server => {
         async ({ board, title, description, column, owner, label, addToTop }) =>
             safeRun(async () => {
                 const card = { title };
-                if (description !== undefined) card.description = description;
+                if (description !== undefined) card.description = toQuillHtml(description);
                 if (column !== undefined) card.columnId = column;
                 if (owner !== undefined) card.owner = owner;
                 if (label !== undefined) card.label = label;
@@ -259,6 +260,7 @@ const registerCardsTools = server => {
         },
         async ({ id, ...updates }) =>
             safeRun(async () => {
+                if (updates.description !== undefined) updates.description = toQuillHtml(updates.description);
                 const data = await makeApiRequest(`/cards/${id}`, { method: 'PATCH', body: updates });
                 return {
                     content: [{ type: 'text', text: `Updated card **${data.title || id}**.` }],

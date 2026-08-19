@@ -1,6 +1,7 @@
 const { z } = require('zod');
 const { makeApiRequest, safeRun } = require('../client');
 const { responseFormatField, ResponseFormat, toJsonString, truncateIfNeeded, RICH_TEXT_HELP } = require('../format');
+const { toQuillHtml } = require('../rich-text');
 const { objectIdField } = require('../schemas');
 
 const READ = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
@@ -36,7 +37,7 @@ const registerCommentsTools = server => {
         },
         async ({ card, text }) =>
             safeRun(async () => {
-                const data = await makeApiRequest('/comments', { method: 'POST', body: { card, text } });
+                const data = await makeApiRequest('/comments', { method: 'POST', body: { card, text: toQuillHtml(text) } });
                 return {
                     content: [{ type: 'text', text: `Comment added to card ${card}.` }],
                     structuredContent: data,
