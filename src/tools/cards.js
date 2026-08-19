@@ -1,6 +1,6 @@
 const { z } = require('zod');
 const { makeApiRequest, safeRun } = require('../client');
-const { responseFormatField, ResponseFormat, toJsonString, truncateIfNeeded } = require('../format');
+const { responseFormatField, ResponseFormat, toJsonString, truncateIfNeeded, RICH_TEXT_HELP } = require('../format');
 const { objectIdField, boardPublicIdField, pageField, countField, isoDateField } = require('../schemas');
 
 const READ = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
@@ -44,7 +44,7 @@ const registerCardsTools = server => {
                 'Args:',
                 '  - board (string, required): board publicId.',
                 '  - title (string, required): card title.',
-                '  - description (string, optional): rich-text or plain description.',
+                `  - description (string, optional): ${RICH_TEXT_HELP}`,
                 '  - column (string, optional): column ObjectId. If omitted, the card lands in the default backlog.',
                 '  - owner (string, optional): account email of the assignee.',
                 '  - label (string, optional): label name (e.g. "Enhancement"). Must match a label configured on the board.',
@@ -57,7 +57,7 @@ const registerCardsTools = server => {
             inputSchema: {
                 board: boardPublicIdField,
                 title: z.string().min(1).max(500),
-                description: z.string().optional(),
+                description: z.string().optional().describe(RICH_TEXT_HELP),
                 column: objectIdField.optional(),
                 owner: z.string().optional(),
                 label: z.string().optional(),
@@ -227,7 +227,7 @@ const registerCardsTools = server => {
                 '  - id (string, required): card ObjectId.',
                 '  - board (string, optional): board publicId — required for mirror cards to disambiguate.',
                 '  - title (string, optional)',
-                '  - description (string, optional)',
+                `  - description (string, optional): ${RICH_TEXT_HELP}`,
                 '  - owner (string, optional): account email or ObjectId.',
                 '  - label (string, optional): label name (e.g. "Enhancement") or ObjectId.',
                 '  - dueAt (string, optional): ISO date or datetime.',
@@ -242,7 +242,7 @@ const registerCardsTools = server => {
                 id: objectIdField,
                 board: boardPublicIdField.optional(),
                 title: z.string().min(1).max(500).optional(),
-                description: z.string().optional(),
+                description: z.string().optional().describe(RICH_TEXT_HELP),
                 owner: z.string().optional(),
                 label: z.string().optional(),
                 dueAt: isoDateField.optional(),

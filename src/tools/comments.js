@@ -1,6 +1,6 @@
 const { z } = require('zod');
 const { makeApiRequest, safeRun } = require('../client');
-const { responseFormatField, ResponseFormat, toJsonString, truncateIfNeeded } = require('../format');
+const { responseFormatField, ResponseFormat, toJsonString, truncateIfNeeded, RICH_TEXT_HELP } = require('../format');
 const { objectIdField } = require('../schemas');
 
 const READ = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
@@ -23,14 +23,14 @@ const registerCommentsTools = server => {
                 '',
                 'Args:',
                 '  - card (string, required): card ObjectId.',
-                '  - text (string, required): the comment body.',
+                `  - text (string, required): the comment body. ${RICH_TEXT_HELP}`,
                 '',
                 'Examples:',
                 '  - "Add a comment to card 670... saying: blocked on design review"',
             ].join('\n'),
             inputSchema: {
                 card: objectIdField,
-                text: z.string().min(1).max(10000),
+                text: z.string().min(1).max(10000).describe(RICH_TEXT_HELP),
             },
             annotations: WRITE,
         },

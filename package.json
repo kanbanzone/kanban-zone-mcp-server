@@ -1,6 +1,6 @@
 {
     "name": "kanban-zone-mcp-server",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "description": "Model Context Protocol server for the Kanban Zone public API",
     "license": "MIT",
     "homepage": "https://docs.kanbanzone.io/mcp",

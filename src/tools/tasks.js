@@ -1,6 +1,7 @@
 const { z } = require('zod');
 const { makeApiRequest, safeRun } = require('../client');
 const { isoDateField, objectIdField } = require('../schemas');
+const { RICH_TEXT_HELP } = require('../format');
 
 const WRITE = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true };
 const IDEMPOTENT_WRITE = { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true };
@@ -15,7 +16,7 @@ const registerTasksTools = server => {
                 '',
                 'Args:',
                 '  - checklist (string, required): checklist ObjectId.',
-                '  - description (string, required): the task text.',
+                `  - description (string, required): the task text. ${RICH_TEXT_HELP}`,
                 '  - position (number, optional, ≥0): if omitted, the task is appended.',
                 '  - dueAt (string, optional): ISO date.',
                 '  - owner (string, optional): account ObjectId or email.',
@@ -25,7 +26,7 @@ const registerTasksTools = server => {
             ].join('\n'),
             inputSchema: {
                 checklist: objectIdField,
-                description: z.string().min(1).max(2000),
+                description: z.string().min(1).max(2000).describe(RICH_TEXT_HELP),
                 position: z.number().int().min(0).optional(),
                 dueAt: isoDateField.optional(),
                 owner: z.string().optional(),
@@ -55,7 +56,7 @@ const registerTasksTools = server => {
                 '',
                 'Args:',
                 '  - id (string, required): task ObjectId.',
-                '  - description (string, optional)',
+                `  - description (string, optional): ${RICH_TEXT_HELP}`,
                 '  - completed (boolean, optional)',
                 '  - completedOn (string, optional): ISO date — only honoured when completed=true.',
                 '  - dueAt (string, optional): ISO date.',
@@ -68,7 +69,7 @@ const registerTasksTools = server => {
             ].join('\n'),
             inputSchema: {
                 id: objectIdField,
-                description: z.string().min(1).max(2000).optional(),
+                description: z.string().min(1).max(2000).optional().describe(RICH_TEXT_HELP),
                 completed: z.boolean().optional(),
                 completedOn: isoDateField.optional(),
                 dueAt: isoDateField.optional(),
