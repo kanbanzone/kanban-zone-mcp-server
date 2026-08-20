@@ -78,13 +78,15 @@ const registerCardsTools = server => {
                 if (addToTop !== undefined) body.addToTop = addToTop;
 
                 const data = await makeApiRequest('/cards', { method: 'POST', body });
-                const created = Array.isArray(data) ? data[0] : data;
+                // The API returns { cards: [{ _id, CardItem, meta }], cardsAdded, errors }.
+                const created = data.cards?.[0] || (Array.isArray(data) ? data[0] : data);
+                const item = created.CardItem || created;
 
                 return {
                     content: [
                         {
                             type: 'text',
-                            text: `Created card **${created.title}** (\`${created._id}\`) on board ${board}.`,
+                            text: `Created card **${item.title}** (\`${created._id}\`) on board ${board}.`,
                         },
                     ],
                     structuredContent: created,

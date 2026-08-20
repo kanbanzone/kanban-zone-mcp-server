@@ -10,7 +10,13 @@ const READ_ANNOTATIONS = {
     openWorldHint: true,
 };
 
-const renderBoardLine = board => `- **${board.title}** (${board.publicId})`;
+// The API wraps each board as { BoardItem: { name, publicId, ... } }.
+const unwrapBoard = entry => entry.BoardItem || entry;
+
+const renderBoardLine = entry => {
+    const board = unwrapBoard(entry);
+    return `- **${board.name || board.title}** (${board.publicId})`;
+};
 
 const registerBoardsTools = server => {
     server.registerTool(
@@ -136,10 +142,11 @@ const registerBoardsTools = server => {
                     },
                 });
 
+                const item = unwrapBoard(data.boards?.[0] || data);
                 const text =
                     response_format === ResponseFormat.JSON
                         ? toJsonString(data)
-                        : `# ${data.title}\n- **publicId**: ${data.publicId}${data.description ? `\n- **description**: ${data.description}` : ''}`;
+                        : `# ${item.name || item.title}\n- **publicId**: ${item.publicId}${item.description ? `\n- **description**: ${item.description}` : ''}`;
 
                 return {
                     content: [{ type: 'text', text }],
