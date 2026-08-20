@@ -46,6 +46,38 @@ test('get_board markdown renders the board name from the wrapped envelope', asyn
     assert.doesNotMatch(text, /undefined/);
 });
 
+test('list_board_columns markdown unwraps ColumnItem and shows WIP limits', async t => {
+    process.env.KANBANZONE_API_KEY = 'a:b';
+    initApiClient();
+    t.mock.method(axios, 'request', async () => ({
+        data: [
+            { ColumnItem: { columnId: 'col1', title: 'In Progress', columnState: 'In Progress', minWIP: 1, maxWIP: 4 } },
+            { ColumnItem: { columnId: 'col2', title: 'Backlog', columnState: 'Backlog', minWIP: null, maxWIP: null } },
+        ],
+    }));
+
+    const listColumns = handlerFor(registerBoardsTools, 'kanbanzone_list_board_columns');
+    const result = await listColumns({ board: 'OeMrbG8g', response_format: 'markdown' });
+    const text = result.content[0].text;
+    assert.match(text, /\*\*In Progress\*\* \(`col1`\).*WIP 1-4/);
+    assert.match(text, /\*\*Backlog\*\* \(`col2`\)/);
+    assert.doesNotMatch(text, /undefined/);
+});
+
+test('list_board_labels markdown uses the flat id field', async t => {
+    process.env.KANBANZONE_API_KEY = 'a:b';
+    initApiClient();
+    t.mock.method(axios, 'request', async () => ({
+        data: [{ id: 'label1', color: '#ff0000', description: 'Bug', position: 0 }],
+    }));
+
+    const listLabels = handlerFor(registerBoardsTools, 'kanbanzone_list_board_labels');
+    const result = await listLabels({ board: 'OeMrbG8g', response_format: 'markdown' });
+    const text = result.content[0].text;
+    assert.match(text, /\*\*Bug\*\* \(`label1`\)/);
+    assert.doesNotMatch(text, /undefined/);
+});
+
 test('create_card confirmation names the created card, not undefined', async t => {
     process.env.KANBANZONE_API_KEY = 'a:b';
     initApiClient();

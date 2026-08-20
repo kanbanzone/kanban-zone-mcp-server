@@ -177,7 +177,12 @@ const registerBoardsTools = server => {
                 query,
                 includeDefault: include_default ? 'true' : undefined,
             }),
-            renderItem: column => `- **${column.title}** (\`${column._id}\`)${column.bucketState ? ` — ${column.bucketState}` : ''}`,
+            // The API wraps each column as { ColumnItem: { columnId, title, columnState, maxWIP, minWIP } }.
+            renderItem: entry => {
+                const column = entry.ColumnItem || entry;
+                const wip = column.maxWIP ? ` — WIP ${column.minWIP || 0}-${column.maxWIP}` : '';
+                return `- **${column.title}** (\`${column.columnId || column._id}\`)${column.columnState ? ` — ${column.columnState}` : ''}${wip}`;
+            },
             example: '"List columns on the OeMrbG8g board"',
         },
         {
@@ -187,7 +192,7 @@ const registerBoardsTools = server => {
             label: 'Labels',
             extraSchema: {},
             buildQuery: () => ({}),
-            renderItem: label => `- **${label.description || '(no description)'}** (\`${label._id}\`)${label.color ? ` color ${label.color}` : ''}`,
+            renderItem: label => `- **${label.description || '(no description)'}** (\`${label.id || label._id}\`)${label.color ? ` color ${label.color}` : ''}`,
             example: '"What labels are available on this board?"',
         },
         {
@@ -198,7 +203,7 @@ const registerBoardsTools = server => {
             extraSchema: {},
             buildQuery: () => ({}),
             renderItem: member => {
-                const name = [member.firstName, member.lastName].filter(Boolean).join(' ') || member.email;
+                const name = member.name || [member.firstName, member.lastName].filter(Boolean).join(' ') || member.email;
                 return `- **${name}** (${member.email}) — \`${member._id}\``;
             },
             example: '"Who can I assign cards to on this board?"',

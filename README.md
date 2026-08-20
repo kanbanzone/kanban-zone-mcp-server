@@ -75,6 +75,13 @@ The server validates the key on startup. A missing or malformed value (no `:` se
 User-facing docs with example prompts: <https://docs.kanbanzone.io/mcp>.
 Full input/output schemas: <https://docs.kanbanzone.io/api>.
 
+## Prompts
+
+Three user-invocable prompts ship alongside the tools: **Board Review**, **Checklist Generator**,
+and **Standup Summary**. In Claude Code they register as slash commands; in Claude Desktop they
+appear in the prompt picker. For clients without native MCP prompt support, [PROMPTS.md](PROMPTS.md)
+carries the same texts as copy-paste blocks.
+
 ## Running from source
 
 If you'd rather run from a local clone (development, contributions, custom modifications):

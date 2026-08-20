@@ -29,7 +29,8 @@
     ],
     "scripts": {
         "start": "node src/index.js",
-        "test": "node --test"
+        "test": "node --test",
+        "generate:prompts-md": "node scripts/generate-prompts-md.js"
     },
     "engines": {
         "node": ">=18"

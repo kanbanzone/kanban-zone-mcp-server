@@ -5,6 +5,7 @@
 
 const { initApiClient } = require('./client');
 const { registerAllTools } = require('./tools');
+const { registerAllPrompts } = require('./prompts');
 const { SERVER_NAME, SERVER_VERSION } = require('./constants');
 
 const main = async () => {
@@ -22,6 +23,7 @@ const main = async () => {
 
     const server = new McpServer({ name: SERVER_NAME, version: SERVER_VERSION });
     registerAllTools(server);
+    registerAllPrompts(server);
 
     const transport = new StdioServerTransport();
     await server.connect(transport);
