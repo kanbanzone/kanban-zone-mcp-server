@@ -35,13 +35,10 @@ for (const [toolName, field] of CONTENT_FIELDS) {
 
         const described = definition.inputSchema[field].description;
         assert.ok(described, `${toolName}.${field} has no schema description`);
-        assert.match(described, /HTML/);
-        assert.match(described, /<p>/);
-        // <code> and <pre> are stripped by the server's sanitizer, so they must not be recommended.
-        assert.match(described, /Do not use <code> or <pre>/);
+        assert.match(described, /Markdown \(preferred\) or HTML/);
     });
 
     test(`${toolName} documents the ${field} format in its prose description too`, () => {
-        assert.match(tools[toolName].description, /HTML, not markdown or plain text/);
+        assert.match(tools[toolName].description, /Markdown \(preferred\) or HTML/);
     });
 }

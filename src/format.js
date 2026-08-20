@@ -11,15 +11,12 @@ const responseFormatField = z
     .default(ResponseFormat.MARKDOWN)
     .describe("Output format. 'markdown' (default) is human-readable; 'json' is the raw structured payload.");
 
-// Card descriptions, comments and task text are stored as HTML by the Quill editor. Plain text
-// collapses into a single unformatted paragraph and markdown is shown literally, so callers have to
-// send real tags. The supported list is what the server's sanitizer actually preserves — verified
-// against it; <code> and <pre> are excluded because it strips them today.
+// Card descriptions, comments and task text are stored as Quill deltas. Markdown is converted to
+// a delta client-side before sending; strings containing HTML tags are passed through unchanged
+// for the server to convert.
 const RICH_TEXT_HELP =
-    'HTML, not markdown or plain text. Plain text renders as one unformatted paragraph and markdown ' +
-    'is shown literally. Wrap every paragraph in <p>. Supported: <p>, <strong>, <em>, <u>, <s>, ' +
-    '<a href>, <ul>/<ol> with <li> (nesting allowed), <h1>-<h3>, <blockquote>. Do not use <code> or ' +
-    '<pre> — the server strips them. Example: <p>Intro</p><ul><li>One</li><li>Two</li></ul>';
+    'Markdown (preferred) or HTML. Markdown is converted to the stored rich-text format; strings ' +
+    'containing HTML tags are passed through unchanged.';
 
 const toJsonString = value => JSON.stringify(value, null, 2);
 
