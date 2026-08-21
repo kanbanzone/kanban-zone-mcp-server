@@ -32,8 +32,12 @@ test('board_review references the real tool contract', async () => {
     const text = await textOf(prompts, 'board_review', { board: 'OeMrbG8g' });
     assert.match(text, /kanbanzone_list_board_columns/);
     assert.match(text, /ColumnItem\.maxWIP/);
+    assert.match(text, /columns set to those columnIds/);
     assert.match(text, /count: 100/);
+    assert.match(text, /short or empty/);
+    assert.match(text, /by columnId, never by column title/);
     assert.match(text, /kanbanzone_get_card_metrics/);
+    assert.match(text, /endAt null/);
     assert.match(text, /more than 7 days/);
     assert.doesNotMatch(text, /undefined/);
 });
@@ -64,5 +68,7 @@ test('standup_summary preselects from the list and uses history start', async ()
     assert.match(text, /kanbanzone_get_card_history/);
     assert.match(text, /start/);
     assert.match(text, /48 hours/);
+    assert.match(text, /stop after five/);
+    assert.match(text, /short or empty/);
     assert.doesNotMatch(text, /undefined/);
 });

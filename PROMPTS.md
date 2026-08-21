@@ -21,13 +21,16 @@ Steps:
 1. Call kanbanzone_get_board with board "<BOARD_PUBLIC_ID>" (response_format: "json") to confirm the board exists.
 2. Call kanbanzone_list_board_columns for the board (response_format: "json"). Each column is wrapped as
    { ColumnItem: ... }; the WIP limit is ColumnItem.maxWIP and the lower bound is ColumnItem.minWIP.
-   Treat a null or 0 maxWIP as "no limit set" and skip that column for WIP checks.
-3. Call kanbanzone_list_cards for the board with count: 100 (response_format: "json"); while has_more is
-   true, fetch the next page so every card is counted. Group cards by their column.
+   Collect the columnId of every column whose maxWIP is set (not null or 0) - only those need cards.
+3. Call kanbanzone_list_cards for the board with columns set to those columnIds (comma-separated),
+   count: 100, response_format: "json". Fetch further pages until a page comes back short or empty;
+   do not rely on has_more alone. Group cards by columnId, never by column title - boards can have
+   identically named columns under different parents.
 4. Compare each limited column's card count against its maxWIP and note violations.
-5. A card is aging when it has sat in its current column for more than 7 days. Check candidates
-   (cards in work columns, oldest lastActionAt first) with kanbanzone_get_card_metrics for their time in
-   column - do not call metrics for every card on the board.
+5. A card is aging when it has sat in its current column for more than 7 days. Check the
+   oldest few candidates per work column (by lastActionAt) with kanbanzone_get_card_metrics. In the
+   metrics, the current column is the segment with endAt null - its totalTime reads 0, so compute the
+   days from its startAt.
 
 Output format:
 - WIP violations: column name - limit N, actual M.
@@ -69,8 +72,9 @@ Arguments: `board`, `hours`
 Draft a standup update (yesterday / today / blockers) from recent movement on Kanban Zone board <BOARD_PUBLIC_ID>.
 
 Steps:
-1. Call kanbanzone_list_cards for the board with count: 100 (response_format: "json"); while has_more is
-   true, fetch the next page.
+1. Call kanbanzone_list_cards for the board with count: 100 (response_format: "json"). Fetch further
+   pages until a page comes back short or empty (do not rely on has_more alone), and stop after five
+   pages - on a larger board, ask for a narrower scope instead.
 2. Preselect from the list itself: cards whose doneAt falls in the last 48 hours (yesterday), cards
    in work columns with recent lastActionAt (today), and cards with blocked: true (blockers - the
    blockedReason is already on the card, no extra calls needed).
