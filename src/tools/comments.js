@@ -1,7 +1,7 @@
 const { z } = require('zod');
 const { makeApiRequest, safeRun } = require('../client');
 const { responseFormatField, ResponseFormat, toJsonString, truncateIfNeeded, RICH_TEXT_HELP } = require('../format');
-const { richTextBody } = require('../markdown-delta');
+const { richTextBody } = require('../markdown');
 const { objectIdField } = require('../schemas');
 
 const READ = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };

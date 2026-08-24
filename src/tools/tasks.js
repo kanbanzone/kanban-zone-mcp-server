@@ -2,7 +2,7 @@ const { z } = require('zod');
 const { makeApiRequest, safeRun } = require('../client');
 const { isoDateField, objectIdField } = require('../schemas');
 const { RICH_TEXT_HELP } = require('../format');
-const { richTextBody } = require('../markdown-delta');
+const { richTextBody } = require('../markdown');
 
 const WRITE = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true };
 const IDEMPOTENT_WRITE = { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true };
