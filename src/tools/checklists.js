@@ -1,6 +1,7 @@
 const { z } = require('zod');
 const { makeApiRequest, safeRun } = require('../client');
-const { responseFormatField, ResponseFormat, toJsonString, truncateIfNeeded } = require('../format');
+const { responseFormatField, ResponseFormat, toJsonString, truncateIfNeeded, RICH_TEXT_HELP } = require('../format');
+const { markdownToHtml } = require('../markdown');
 const { objectIdField } = require('../schemas');
 
 const READ = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
@@ -19,7 +20,7 @@ const registerChecklistsTools = server => {
                 '  - card (string, required): card ObjectId.',
                 '  - title (string, optional): checklist title.',
                 '  - checklistTemplate (string, optional): checklist template ObjectId.',
-                '  - tasks (array, optional): list of { description: string }. Task position is taken from array index — any `position` field on a task is ignored.',
+                `  - tasks (array, optional): list of { description: string }. ${RICH_TEXT_HELP} Task position is taken from array index — any \`position\` field on a task is ignored.`,
                 '',
                 'Examples:',
                 '  - "Add a checklist to card 670... with tasks: write tests, update docs"',
@@ -32,7 +33,11 @@ const registerChecklistsTools = server => {
                 tasks: z
                     .array(
                         z.object({
-                            description: z.string().min(1).max(2000),
+                            description: z
+                                .string()
+                                .min(1)
+                                .max(2000)
+                                .describe(RICH_TEXT_HELP),
                         })
                     )
                     .optional(),
@@ -44,7 +49,11 @@ const registerChecklistsTools = server => {
                 const body = { card };
                 if (title !== undefined) body.title = title;
                 if (checklistTemplate !== undefined) body.checklistTemplate = checklistTemplate;
-                if (tasks !== undefined) body.tasks = tasks;
+                // tasks[].description is a plain string field on the API, so convert markdown
+                // here the same way every other rich-text field is converted.
+                if (tasks !== undefined) {
+                    body.tasks = tasks.map(task => ({ ...task, description: markdownToHtml(task.description) }));
+                }
 
                 const data = await makeApiRequest('/checklists', { method: 'POST', body });
                 const taskCount = Array.isArray(data.tasks) ? data.tasks.length : 0;

@@ -46,3 +46,34 @@ test('links survive', () => {
     assert.equal(markdownToHtml('[site](https://kanbanzone.io)'),
         '<p><a href="https://kanbanzone.io">site</a></p>');
 });
+
+// create_checklist sends tasks[] as plain strings on the API — it was the one rich-text path
+// that never converted markdown, so checklist tasks stored literal `code` and **bold**.
+test('create_checklist converts markdown in every task description', async t => {
+    const axios = require('axios');
+    const { initApiClient } = require('../src/client');
+    const { registerChecklistsTools } = require('../src/tools/checklists');
+
+    process.env.KANBANZONE_API_KEY = 'a:b';
+    initApiClient();
+    let sent;
+    t.mock.method(axios, 'request', async cfg => {
+        sent = cfg.data;
+        return { data: { _id: 'c1', tasks: [{}, {}] } };
+    });
+
+    let handler;
+    registerChecklistsTools({
+        registerTool: (name, def, fn) => {
+            if (name === 'kanbanzone_create_checklist') handler = fn;
+        },
+    });
+
+    await handler({
+        card: 'a1b2c3d4e5f6a7b8c9d0e1f2',
+        tasks: [{ description: 'first with `code`' }, { description: 'second with **bold**' }],
+    });
+
+    assert.equal(sent.tasks[0].description, '<p>first with <code>code</code></p>');
+    assert.equal(sent.tasks[1].description, '<p>second with <strong>bold</strong></p>');
+});
