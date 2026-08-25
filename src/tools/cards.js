@@ -234,11 +234,15 @@ const registerCardsTools = server => {
                 '  - owner (string, optional): account email or ObjectId.',
                 '  - label (string, optional): label name (e.g. "Enhancement") or ObjectId.',
                 '  - dueAt (string, optional): ISO date or datetime.',
+                '  - blocked (boolean, optional): true blocks the card, false unblocks it. Unblocking also clears the block reason.',
+                '  - blockedReason (string, optional): why the card is blocked. Pair it with blocked: true.',
                 '  - customFields (array, optional): list of { label, value } pairs. `label` matches the custom-field name configured on the board.',
                 '',
                 'Examples:',
                 '  - "Reassign card 670... to bob@example.com"',
                 '  - "Set the due date on card 670... to 2025-06-01"',
+                '  - "Block card 670... because we are waiting on the vendor"',
+                '  - "Unblock card 670..."',
                 '  - "Set the Project Code custom field on card 670... to ABC-123"',
             ].join('\n'),
             inputSchema: {
@@ -249,6 +253,8 @@ const registerCardsTools = server => {
                 owner: z.string().optional(),
                 label: z.string().optional(),
                 dueAt: isoDateField.optional(),
+                blocked: z.boolean().optional(),
+                blockedReason: z.string().max(2000).optional(),
                 customFields: z
                     .array(
                         z.object({
