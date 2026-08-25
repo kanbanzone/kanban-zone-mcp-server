@@ -71,6 +71,10 @@ const makeApiRequest = async (endpoint, { method = 'GET', body, query } = {}) =>
         headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
+            // Declares this traffic as MCP-originated so org admins' MCP access controls apply to
+            // API-key connections too (the backend gates and audits on it). Presence-only signal —
+            // the value is never trusted upstream.
+            'X-MCP-Client': 'mcp-server',
         },
     };
     // A multi-tenant host may bind an OAuth bearer token instead of an accessId/secret pair
