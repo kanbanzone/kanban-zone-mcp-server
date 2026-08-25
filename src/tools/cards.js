@@ -8,7 +8,7 @@ const READ = { readOnlyHint: true, destructiveHint: false, idempotentHint: true,
 const WRITE = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true };
 const IDEMPOTENT_WRITE = { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true };
 
-// list_cards nests card fields under CardItem; search_cards returns them flat. Handle both.
+// Card fields arrive nested under CardItem. Older search responses were flat — handle both.
 const renderCardLine = card => {
     const c = (card && card.CardItem) || card || {};
     const id = (card && card._id) || c._id;
@@ -407,8 +407,8 @@ const registerCardsTools = server => {
                 'Results are sorted by relevance (best match first).',
                 '',
                 'Mirror cards: results are returned per (card, board) pair — a card mirrored to two',
-                'boards that matches the query appears twice, each with that board\'s bucket, label,',
-                'owner, and watchers. Use the returned `board` field to know which board to act on.',
+                'boards that matches the query appears twice, each with that board\'s column, label,',
+                'owner, and watchers. Use the returned CardItem.boardPublicId to know which board to act on.',
                 '',
                 'Args:',
                 '  - q (string, required): search text, minimum 2 characters.',
